@@ -1,0 +1,111 @@
+experiment:
+  name: talent_project_ddqn_per
+  seeds: [11, 23, 37, 51, 71]
+  n_folds: 5
+  validation_fraction_of_development: 0.15
+  output_root: outputs
+  device: auto
+  deterministic: true
+
+dataset:
+  kaggle_slug: programmer3/industry-education-skills-matching-dataset
+  csv_glob: "*.csv"
+  max_rows: null
+  text_column_candidates:
+    - skill_name
+    - course_name
+    - job_role
+    - job_category
+    - course_type
+    - course_category
+    - industry_domain
+    - skill
+  group_column_candidates:
+    - job_role
+    - job_category
+    - industry_domain
+    - course_type
+    - course_category
+  skill_exclude_patterns:
+    - id
+    - index
+    - label
+    - target
+    - gap
+    - demand
+    - supply
+    - importance
+    - score
+  min_skill_columns: 3
+
+labels:
+  # Dataset-derived heuristic supervision only.
+  skill_weight: 0.60
+  role_weight: 0.20
+  course_weight: 0.10
+  demand_weight: 0.10
+  threshold: 0.62
+
+simulation:
+  enabled: true
+  skill_noise_std: 0.04
+  project_drift_std: 0.05
+  learning_rate_min: 0.00
+  learning_rate_max: 0.04
+  availability_min: 0.25
+  availability_max: 1.00
+  behavior_min: 0.25
+  behavior_max: 1.00
+  collaboration_min: 0.00
+  collaboration_max: 1.00
+  experience_min: 0.00
+  experience_max: 1.00
+  max_episode_steps: 200
+
+text_encoder:
+  model_name: distilbert-base-uncased
+  max_length: 64
+  batch_size: 32
+  freeze: true
+  allow_tfidf_fallback: false
+
+model:
+  hidden_dim: 128
+  graph_heads: 4
+  transformer_heads: 4
+  transformer_layers: 2
+  dropout: 0.20
+  graph_skill_threshold: 0.05
+  supervised_epochs: 20
+  batch_size: 64
+  learning_rate: 0.0005
+  weight_decay: 0.0001
+  patience: 4
+
+ddqn:
+  hidden_dim: 128
+  replay_buffer_size: 100000
+  batch_size: 64
+  gamma: 0.99
+  learning_rate: 0.0005
+  soft_tau: 0.001
+  epsilon_start: 1.0
+  epsilon_end: 0.01
+  epsilon_decay_steps: 5000
+  priority_alpha: 0.6
+  priority_beta_start: 0.4
+  priority_beta_end: 1.0
+  priority_epsilon: 0.000001
+  train_steps: 6000
+  warmup_steps: 512
+  update_every: 4
+  gradient_clip_norm: 5.0
+  proposed_rl_weight: 0.30
+
+evaluation:
+  threshold_metric: f1
+  topk: [1, 3, 5]
+  bootstrap_samples: 2000
+  confidence_level: 0.95
+  shap_background: 500
+  shap_explain: 500
